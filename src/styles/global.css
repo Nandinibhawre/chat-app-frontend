@@ -394,15 +394,17 @@ body {
     height: 180px;
   }
 }
-.messages-container{
-  flex:1;
-  padding:20px;
-  overflow-y:auto;
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-  background:#f4f7fb;
+.messages-container {
+
+  flex: 1;
+  padding: 20px;
+  overflow-y: auto;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
+
 
 /* WRAPPERS */
 

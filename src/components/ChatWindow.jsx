@@ -1,6 +1,7 @@
 import {
   useEffect,
-  useState
+  useState,
+  useRef
 } from 'react'
 
 import {
@@ -33,12 +34,15 @@ function ChatWindow({
   const [messages, setMessages] =
     useState([])
 
+  const socketConnected =
+    useRef(false)
+
   // LOAD OLD CHATS
   useEffect(() => {
 
     if (!selectedUser) return
 
-    const fetchMessages =
+    const loadMessages =
       async () => {
 
         try {
@@ -56,22 +60,27 @@ function ChatWindow({
 
               id: msg.id,
 
-              text: msg.content,
+              text:
+                msg.content,
 
-              sender: msg.sender,
-
-              receiver: msg.receiver,
+              sender:
+                msg.sender,
 
               own:
                 msg.sender ===
                 currentUser,
 
               time:
-                new Date()
-                  .toLocaleTimeString()
+                msg.timestamp
+                  ? new Date(
+                      msg.timestamp
+                    ).toLocaleTimeString()
+                  : ''
             }))
 
-          setMessages(formatted)
+          setMessages(
+            formatted
+          )
 
         } catch (error) {
 
@@ -79,16 +88,19 @@ function ChatWindow({
         }
       }
 
-    fetchMessages()
+    loadMessages()
 
-  }, [
+  }, [selectedUser])
 
-    selectedUser,
-    currentUser
-  ])
-
-  // SOCKET CONNECTION
+  // SOCKET
   useEffect(() => {
+
+    if (
+      socketConnected.current
+    ) return
+
+    socketConnected.current =
+      true
 
     connectSocket((newMessage) => {
 
@@ -97,9 +109,7 @@ function ChatWindow({
         (
           newMessage.sender ===
             currentUser
-
           &&
-
           newMessage.receiver ===
             selectedUser?.email
         )
@@ -109,52 +119,63 @@ function ChatWindow({
         (
           newMessage.sender ===
             selectedUser?.email
-
           &&
-
           newMessage.receiver ===
             currentUser
         )
 
-      if (!isCurrentChat) return
+      if (!isCurrentChat)
+        return
 
-      setMessages((prev) => [
+      setMessages((prev) => {
 
-        ...prev,
+        const alreadyExists =
+          prev.some(
 
-        {
+            (msg) =>
 
-          id:
-            newMessage.id ||
+              msg.id ===
+              newMessage.id
+          )
 
-            Date.now(),
+        if (alreadyExists)
+          return prev
 
-          text:
-            newMessage.content,
+        return [
 
-          sender:
-            newMessage.sender,
+          ...prev,
 
-          receiver:
-            newMessage.receiver,
+          {
 
-          own:
-            newMessage.sender ===
-            currentUser,
+            id:
+              newMessage.id,
 
-          time:
-            new Date()
-              .toLocaleTimeString()
-        }
-      ])
+            text:
+              newMessage.content,
+
+            sender:
+              newMessage.sender,
+
+            own:
+              newMessage.sender ===
+              currentUser,
+
+            time:
+              new Date()
+                .toLocaleTimeString()
+          }
+        ]
+      })
     })
 
-  }, [selectedUser])
+  }, [])
 
-  // SEND MESSAGE
+  // SEND
   const handleSend = () => {
 
-    if (!message.trim()) return
+    if (
+      !message.trim()
+    ) return
 
     const messageData = {
 
@@ -170,10 +191,33 @@ function ChatWindow({
 
     sendMessage(messageData)
 
+    // SHOW IMMEDIATELY
+    setMessages((prev) => [
+
+      ...prev,
+
+      {
+
+        id:
+          Date.now(),
+
+        text:
+          message,
+
+        sender:
+          currentUser,
+
+        own: true,
+
+        time:
+          new Date()
+            .toLocaleTimeString()
+      }
+    ])
+
     setMessage('')
   }
 
-  // NO USER SELECTED
   if (!selectedUser) {
 
     return (
@@ -200,11 +244,44 @@ function ChatWindow({
 
       <div className='chat-header'>
 
-        <h3>
-          {
-            selectedUser.username
-          }
-        </h3>
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '10px'
+          }}
+        >
+
+          <img
+            src='https://i.pravatar.cc/50'
+            alt=''
+
+            style={{
+              width: '45px',
+              height: '45px',
+              borderRadius: '50%'
+            }}
+          />
+
+          <div>
+
+            <h3>
+              {
+                selectedUser.username
+              }
+            </h3>
+
+            <span
+              style={{
+                color: 'green'
+              }}
+            >
+              Online
+            </span>
+
+          </div>
+
+        </div>
 
       </div>
 
@@ -230,9 +307,11 @@ function ChatWindow({
               }
             >
 
-              <p>
-                {msg.text}
-              </p>
+              <p>{msg.text}</p>
+
+              <span>
+                {msg.time}
+              </span>
 
             </div>
           ))
@@ -248,9 +327,9 @@ function ChatWindow({
 
           type='text'
 
-          value={message}
-
           placeholder='Type message...'
+
+          value={message}
 
           onChange={(e) =>
 

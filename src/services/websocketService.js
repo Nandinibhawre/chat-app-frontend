@@ -5,16 +5,13 @@ from '@stomp/stompjs'
 
 let stompClient = null
 
-let isConnected = false
-
 export const connectSocket = (
   onMessageReceived
 ) => {
 
-  // PREVENT MULTIPLE CONNECTIONS
   if (
     stompClient &&
-    isConnected
+    stompClient.connected
   ) {
     return
   }
@@ -32,11 +29,7 @@ export const connectSocket = (
 
       reconnectDelay: 5000,
 
-      debug: () => {},
-
       onConnect: () => {
-
-        isConnected = true
 
         console.log(
           'Socket Connected'
@@ -48,29 +41,15 @@ export const connectSocket = (
 
           (message) => {
 
-            const receivedMessage =
+            const data =
               JSON.parse(
                 message.body
               )
 
             onMessageReceived(
-              receivedMessage
+              data
             )
           }
-        )
-      },
-
-      onDisconnect: () => {
-
-        isConnected = false
-      },
-
-      onStompError: () => {
-
-        isConnected = false
-
-        console.log(
-          'Socket Error'
         )
       }
     })
@@ -84,7 +63,7 @@ export const sendMessage = (
 
   if (
     stompClient &&
-    isConnected
+    stompClient.connected
   ) {
 
     stompClient.publish({
