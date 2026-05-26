@@ -402,6 +402,7 @@ body {
 
   display: flex;
   flex-direction: column;
+  padding: 20px;
   gap: 10px;
 }
 
@@ -448,13 +449,23 @@ body {
 }
 
 /* OTHER MESSAGE */
+
 .other-message {
+
   align-self: flex-start;
-  background: #e5e5e5;
+
+  background: #e4e6eb;
+
   color: black;
-  padding: 10px 15px;
-  border-radius: 15px;
+
+  padding: 10px 14px;
+
+  border-radius: 15px 15px 15px 0px;
+
   max-width: 250px;
+
+  word-wrap: break-word;
+
 }
 
 /* SENDER NAME */
@@ -468,8 +479,11 @@ body {
 
 /* TIME */
 
-.message-bubble span{
-  font-size:11px;
-  margin-top:6px;
-  opacity:0.7;
+.my-message span,
+.other-message span{
+    display: block;
+  font-size: 11px;
+  margin-top: 4px;
+  opacity: 0.7;
 }
+

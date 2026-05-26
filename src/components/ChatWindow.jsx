@@ -1,7 +1,6 @@
 import {
   useEffect,
-  useState,
-  useRef
+  useState
 } from 'react'
 
 import {
@@ -10,7 +9,8 @@ import {
 
 import {
   connectSocket,
-  sendMessage
+  sendMessage,
+  disconnectSocket
 } from '../services/websocketService'
 
 import {
@@ -34,73 +34,71 @@ function ChatWindow({
   const [messages, setMessages] =
     useState([])
 
-  const socketConnected =
-    useRef(false)
-
-  // LOAD OLD CHATS
+  // LOAD OLD MESSAGES
   useEffect(() => {
 
     if (!selectedUser) return
 
-    const loadMessages =
-      async () => {
-
-        try {
-
-          const data =
-            await getMessages(
-
-              currentUser,
-
-              selectedUser.email
-            )
-
-          const formatted =
-            data.map((msg) => ({
-
-              id: msg.id,
-
-              text:
-                msg.content,
-
-              sender:
-                msg.sender,
-
-              own:
-                msg.sender ===
-                currentUser,
-
-              time:
-                msg.timestamp
-                  ? new Date(
-                      msg.timestamp
-                    ).toLocaleTimeString()
-                  : ''
-            }))
-
-          setMessages(
-            formatted
-          )
-
-        } catch (error) {
-
-          console.log(error)
-        }
-      }
-
-    loadMessages()
+    fetchMessages()
 
   }, [selectedUser])
 
-  // SOCKET
+  const fetchMessages =
+    async () => {
+
+      try {
+
+        const data =
+          await getMessages(
+
+            currentUser,
+            selectedUser.email
+          )
+
+        const formatted = data.map(
+          (msg) => ({
+
+            id: msg.id,
+
+            text: msg.content,
+
+            sender: msg.sender,
+
+            own:
+              msg.sender ===
+              currentUser,
+
+            time:
+              msg.timestamp
+                ? new Date(
+                    msg.timestamp
+                  ).toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                  })
+                : ''
+          })
+        )
+
+        // SORT BY TIME
+        formatted.sort(
+          (a, b) =>
+            new Date(a.time) -
+            new Date(b.time)
+        )
+
+        setMessages(formatted)
+
+      } catch (error) {
+
+        console.log(error)
+      }
+    }
+
+  // SOCKET CONNECTION
   useEffect(() => {
 
-    if (
-      socketConnected.current
-    ) return
-
-    socketConnected.current =
-      true
+    if (!selectedUser) return
 
     connectSocket((newMessage) => {
 
@@ -111,44 +109,29 @@ function ChatWindow({
             currentUser
           &&
           newMessage.receiver ===
-            selectedUser?.email
+            selectedUser.email
         )
 
         ||
 
         (
           newMessage.sender ===
-            selectedUser?.email
+            selectedUser.email
           &&
           newMessage.receiver ===
             currentUser
         )
 
-      if (!isCurrentChat)
-        return
+      if (isCurrentChat) {
 
-      setMessages((prev) => {
-
-        const alreadyExists =
-          prev.some(
-
-            (msg) =>
-
-              msg.id ===
-              newMessage.id
-          )
-
-        if (alreadyExists)
-          return prev
-
-        return [
+        setMessages((prev) => [
 
           ...prev,
 
           {
 
             id:
-              newMessage.id,
+              Date.now(),
 
             text:
               newMessage.content,
@@ -162,20 +145,26 @@ function ChatWindow({
 
             time:
               new Date()
-                .toLocaleTimeString()
+                .toLocaleTimeString([], {
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })
           }
-        ]
-      })
+        ])
+      }
     })
 
-  }, [])
+    return () => {
 
-  // SEND
+      disconnectSocket()
+    }
+
+  }, [selectedUser])
+
+  // SEND MESSAGE
   const handleSend = () => {
 
-    if (
-      !message.trim()
-    ) return
+    if (!message.trim()) return
 
     const messageData = {
 
@@ -191,30 +180,6 @@ function ChatWindow({
 
     sendMessage(messageData)
 
-    // SHOW IMMEDIATELY
-    setMessages((prev) => [
-
-      ...prev,
-
-      {
-
-        id:
-          Date.now(),
-
-        text:
-          message,
-
-        sender:
-          currentUser,
-
-        own: true,
-
-        time:
-          new Date()
-            .toLocaleTimeString()
-      }
-    ])
-
     setMessage('')
   }
 
@@ -224,13 +189,9 @@ function ChatWindow({
 
       <div className='chat-window'>
 
-        <div className='chat-header'>
-
-          <h2>
-            Select User To Chat
-          </h2>
-
-        </div>
+        <h2>
+          Select User To Chat
+        </h2>
 
       </div>
     )
@@ -254,7 +215,7 @@ function ChatWindow({
 
           <img
             src='https://i.pravatar.cc/50'
-            alt=''
+            alt='user'
 
             style={{
               width: '45px',
@@ -266,9 +227,7 @@ function ChatWindow({
           <div>
 
             <h3>
-              {
-                selectedUser.username
-              }
+              {selectedUser.username}
             </h3>
 
             <span
@@ -285,7 +244,7 @@ function ChatWindow({
 
       </div>
 
-      {/* MESSAGES */}
+      {/* CHAT */}
 
       <div className='messages-container'>
 
@@ -298,16 +257,15 @@ function ChatWindow({
               key={msg.id}
 
               className={
-
                 msg.own
-
                   ? 'my-message'
-
                   : 'other-message'
               }
             >
 
-              <p>{msg.text}</p>
+              <p>
+                {msg.text}
+              </p>
 
               <span>
                 {msg.time}
@@ -327,7 +285,7 @@ function ChatWindow({
 
           type='text'
 
-          placeholder='Type message...'
+          placeholder='Type a message...'
 
           value={message}
 

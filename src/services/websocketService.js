@@ -9,16 +9,15 @@ export const connectSocket = (
   onMessageReceived
 ) => {
 
-  if (
-    stompClient &&
-    stompClient.connected
-  ) {
-    return
-  }
+  // GET LOGGED IN USER
+  const currentUser =
+    localStorage.getItem(
+      'userEmail'
+    )
 
   const socket =
     new SockJS(
-      'http://localhost:8080/ws'
+      `http://localhost:8080/ws?email=${currentUser}`
     )
 
   stompClient =
@@ -28,6 +27,8 @@ export const connectSocket = (
         () => socket,
 
       reconnectDelay: 5000,
+
+      debug: () => {},
 
       onConnect: () => {
 
@@ -41,13 +42,13 @@ export const connectSocket = (
 
           (message) => {
 
-            const data =
+            const receivedMessage =
               JSON.parse(
                 message.body
               )
 
             onMessageReceived(
-              data
+              receivedMessage
             )
           }
         )
@@ -74,5 +75,15 @@ export const sendMessage = (
       body:
         JSON.stringify(message)
     })
+  }
+}
+
+export const disconnectSocket = () => {
+
+  if (stompClient) {
+
+    stompClient.deactivate()
+
+    stompClient = null
   }
 }
