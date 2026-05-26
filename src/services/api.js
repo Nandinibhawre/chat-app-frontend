@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 // BASE URL
-const BASE_URL = 'http://localhost:8080'
+const BASE_URL = 'https://chat-app-backend-production-54a2.up.railway.app'
 
 // AXIOS INSTANCE
 const api = axios.create({

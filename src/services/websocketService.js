@@ -17,7 +17,7 @@ export const connectSocket = (
 
   const socket =
     new SockJS(
-      `http://localhost:8080/ws?email=${currentUser}`
+      `https://chat-app-backend-production-54a2.up.railway.app/ws?email=${currentUser}`
     )
 
   stompClient =
@@ -32,7 +32,7 @@ export const connectSocket = (
 
       onConnect: () => {
 
-        console.log(
+        console.log(      
           'Socket Connected'
         )
 
