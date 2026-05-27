@@ -7,7 +7,10 @@ from 'framer-motion'
 import { useState }
 from 'react'
 
-import { loginUser }
+import {
+  loginUser,
+  forgotPassword
+}
 from '../services/api'
 
 function Login() {
@@ -32,33 +35,33 @@ function Login() {
     })
   }
 
+  // ================= LOGIN =================
+
   const handleLogin = async () => {
 
     try {
 
-      // API CALL
+      const response =
+        await loginUser(formData)
 
-     const response =
-  await loginUser(formData)
-
-console.log(response)
+      console.log(response)
 
       // STORE TOKEN
 
- localStorage.setItem(
-  'token',
-  response.token
-)
+      localStorage.setItem(
+        'token',
+        response.token
+      )
 
-localStorage.setItem(
-  'userEmail',
-  response.email
-)
+      localStorage.setItem(
+        'userEmail',
+        response.email
+      )
 
-localStorage.setItem(
-  'username',
-  response.username
-)
+      localStorage.setItem(
+        'username',
+        response.username
+      )
 
       alert('Login Successful')
 
@@ -71,6 +74,39 @@ localStorage.setItem(
       alert('Invalid Credentials')
     }
   }
+
+  // ================= FORGOT PASSWORD =================
+
+  const handleForgotPassword =
+    async () => {
+
+      if (!formData.email) {
+
+        alert(
+          'Please enter your email first'
+        )
+
+        return
+      }
+
+      try {
+
+        const response =
+          await forgotPassword(
+            formData.email
+          )
+
+        alert(response)
+
+      } catch (error) {
+
+        console.log(error)
+
+        alert(
+          'Failed to send reset link'
+        )
+      }
+    }
 
   return (
 
@@ -122,6 +158,36 @@ localStorage.setItem(
 
           onChange={handleChange}
         />
+
+        {/* FORGOT PASSWORD */}
+
+        <div
+          style={{
+            width: '100%',
+            textAlign: 'right',
+            marginBottom: '15px'
+          }}
+        >
+
+          <span
+
+            onClick={
+              handleForgotPassword
+            }
+
+            style={{
+              color: '#6C63FF',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: '600'
+            }}
+          >
+
+            Forgot Password?
+
+          </span>
+
+        </div>
 
         <button
           onClick={handleLogin}

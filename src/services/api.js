@@ -119,4 +119,23 @@ export const getAllUsers =
 
     return response.data
   }
+
+  //forget password
+  export const forgotPassword =
+  async (email) => {
+
+    const response =
+      await axios.post(
+
+        `${BASE_URL}/auth/forgot-password`,
+
+        null,
+
+        {
+          params: { email }
+        }
+      )
+
+    return response.data
+}
 export default api
