@@ -127,7 +127,7 @@ export const getAllUsers =
     const response =
       await axios.post(
 
-        `${BASE_URL}/auth/forgot-password`,
+        `${BASE_URL}/api/auth/forgot-password`,
 
         null,
 
