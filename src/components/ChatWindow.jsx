@@ -4,8 +4,12 @@ import {
 } from 'react'
 
 import {
-  FaPaperPlane
+  FaPaperPlane,
+  FaSmile
 } from 'react-icons/fa'
+
+import EmojiPicker
+from 'emoji-picker-react'
 
 import {
   connectSocket,
@@ -34,6 +38,10 @@ function ChatWindow({
   const [messages, setMessages] =
     useState([])
 
+  const [showEmojiPicker,
+        setShowEmojiPicker] =
+        useState(false)
+
   // LOAD OLD MESSAGES
   useEffect(() => {
 
@@ -55,8 +63,8 @@ function ChatWindow({
             selectedUser.email
           )
 
-        const formatted = data.map(
-          (msg) => ({
+        const formatted =
+          data.map((msg) => ({
 
             id: msg.id,
 
@@ -77,15 +85,7 @@ function ChatWindow({
                     minute: '2-digit'
                   })
                 : ''
-          })
-        )
-
-        // SORT BY TIME
-        formatted.sort(
-          (a, b) =>
-            new Date(a.time) -
-            new Date(b.time)
-        )
+          }))
 
         setMessages(formatted)
 
@@ -124,33 +124,48 @@ function ChatWindow({
 
       if (isCurrentChat) {
 
-        setMessages((prev) => [
+        setMessages((prev) => {
 
-          ...prev,
+          const exists =
+            prev.some(
+              (msg) =>
+                msg.id ===
+                newMessage.id
+            )
 
-          {
+          if (exists) {
+            return prev
+          }
 
-            id:
-              Date.now(),
+          return [
 
-            text:
-              newMessage.content,
+            ...prev,
 
-            sender:
-              newMessage.sender,
+            {
 
-            own:
-              newMessage.sender ===
-              currentUser,
+              id:
+                newMessage.id,
 
-            time:
-              new Date()
-                .toLocaleTimeString([], {
+              text:
+                newMessage.content,
+
+              sender:
+                newMessage.sender,
+
+              own:
+                newMessage.sender ===
+                currentUser,
+
+              time:
+                new Date(
+                  newMessage.timestamp
+                ).toLocaleTimeString([], {
                   hour: '2-digit',
                   minute: '2-digit'
                 })
-          }
-        ])
+            }
+          ]
+        })
       }
     })
 
@@ -181,17 +196,36 @@ function ChatWindow({
     sendMessage(messageData)
 
     setMessage('')
+
+    setShowEmojiPicker(false)
   }
 
+  // ADD EMOJI
+  const onEmojiClick = (
+    emojiData
+  ) => {
+
+    setMessage(
+
+      (prev) =>
+        prev + emojiData.emoji
+    )
+  }
+
+  // NO USER SELECTED
   if (!selectedUser) {
 
     return (
 
       <div className='chat-window'>
 
-        <h2>
-          Select User To Chat
-        </h2>
+        <div className='chat-header'>
+
+          <h2>
+            Select User To Chat
+          </h2>
+
+        </div>
 
       </div>
     )
@@ -215,7 +249,7 @@ function ChatWindow({
 
           <img
             src='https://i.pravatar.cc/50'
-            alt='user'
+            alt=''
 
             style={{
               width: '45px',
@@ -244,7 +278,7 @@ function ChatWindow({
 
       </div>
 
-      {/* CHAT */}
+      {/* MESSAGES */}
 
       <div className='messages-container'>
 
@@ -281,6 +315,54 @@ function ChatWindow({
 
       <div className='message-input'>
 
+        {/* EMOJI */}
+
+        <div
+          style={{
+            position: 'relative'
+          }}
+        >
+
+          <FaSmile
+
+            className='emoji-icon'
+
+            onClick={() =>
+
+              setShowEmojiPicker(
+                !showEmojiPicker
+              )
+            }
+          />
+
+          {
+
+            showEmojiPicker && (
+
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: '60px',
+                  padding: '10px',
+                  left: '0',
+                  zIndex: 1000
+                }}
+              >
+
+                <EmojiPicker
+                  onEmojiClick={
+                    onEmojiClick
+                  }
+                />
+
+              </div>
+            )
+          }
+
+        </div>
+
+        {/* INPUT */}
+
         <input
 
           type='text'
@@ -306,6 +388,8 @@ function ChatWindow({
             }
           }}
         />
+
+        {/* SEND */}
 
         <button
           onClick={handleSend}
