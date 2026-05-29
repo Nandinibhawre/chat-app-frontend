@@ -3,6 +3,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import ChatPage from './pages/ChatPage'
 import './App.css'
+import ResetPassword from './pages/ResetPassword'
 function App() {
   return (
     <BrowserRouter>
@@ -10,6 +11,12 @@ function App() {
         <Route path='/' element={<Login />} />
         <Route path='/register' element={<Register />} />
         <Route path='/chat' element={<ChatPage />} />
+
+    <Route
+        path='/reset-password'
+        element={<ResetPassword />}
+    />
+
       </Routes>
     </BrowserRouter>
   )
