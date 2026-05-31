@@ -1,0 +1,164 @@
+.friend-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 16px 20px;
+  margin-bottom: 15px;
+
+  background: #fff;
+
+  border-radius: 18px;
+
+  border: 1px solid #e5e7eb;
+
+  transition: all 0.3s ease;
+}
+
+.friend-card:hover {
+  transform: translateY(-4px);
+
+  box-shadow: 0 10px 25px rgba(108, 99, 255, 0.15);
+}
+
+.friend-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.friend-left img {
+  width: 60px;
+  height: 60px;
+
+  border-radius: 50%;
+
+  object-fit: cover;
+
+  border: 3px solid #6c63ff;
+}
+
+.friend-left h4 {
+  margin: 0;
+  font-size: 16px;
+  color: #111827;
+}
+
+.friend-left p {
+  margin-top: 4px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
+.invite-btn,
+.chat-btn,
+.accept-btn,
+.reject-btn {
+  border: none;
+  cursor: pointer;
+  transition: 0.3s;
+  font-weight: 600;
+}
+
+.invite-btn {
+  background: linear-gradient(
+    135deg,
+    #6c63ff,
+    #8b5cf6
+  );
+
+  color: white;
+
+  padding: 12px 25px;
+
+  border-radius: 30px;
+}
+
+.invite-btn:hover {
+  transform: scale(1.05);
+}
+
+.chat-btn {
+  background: linear-gradient(
+    135deg,
+    #2563eb,
+    #3b82f6
+  );
+
+  color: white;
+
+  padding: 12px 22px;
+
+  border-radius: 12px;
+}
+
+.accept-btn {
+  background: #22c55e;
+
+  color: white;
+
+  padding: 10px 15px;
+
+  border-radius: 10px;
+
+  margin-right: 10px;
+}
+
+.reject-btn {
+  background: #ef4444;
+
+  color: white;
+
+  padding: 10px 15px;
+
+  border-radius: 10px;
+}
+
+.request-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 15px;
+  margin-bottom: 12px;
+
+  border-bottom: 1px solid #eee;
+}
+
+.request-user {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.request-user img {
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.request-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.accept-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: none;
+  background: #7b61ff;
+  color: white;
+  cursor: pointer;
+}
+
+.reject-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid #7b61ff;
+  background: white;
+  color: #7b61ff;
+  cursor: pointer;
+}

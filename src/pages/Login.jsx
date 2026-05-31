@@ -62,10 +62,14 @@ function Login() {
         'username',
         response.username
       )
-
+      
+      localStorage.setItem(
+        'userId',
+        response.userId
+      )
       alert('Login Successful')
 
-      navigate('/chat')
+      navigate('/home')
 
     } catch (error) {
 

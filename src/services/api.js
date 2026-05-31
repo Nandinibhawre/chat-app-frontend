@@ -63,8 +63,9 @@ export const loginUser =
         '/api/auth/login',
 
         loginData
+        
       )
-
+console.log("LOGIN RESPONSE:", response.data);
     // SAVE TOKEN
     localStorage.setItem(
 
@@ -87,6 +88,12 @@ export const loginUser =
       'username',
 
       response.data.username
+    )
+ localStorage.setItem(
+
+      'userId',
+
+      response.data.userId
     )
 
     return response.data

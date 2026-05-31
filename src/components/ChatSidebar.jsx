@@ -63,7 +63,7 @@ console.log(data)
         opacity: 1
       }}
 
-      className='sidebar'
+      className='chat-sidebar'
     >
 
       <div className='search-box'>

@@ -12,6 +12,7 @@ body,
 #root {
   width: 100%;
   height: 100%;
+  overflow: scroll;
 }
 
 body {
@@ -147,10 +148,10 @@ body {
 
 /* SIDEBAR */
 
-.sidebar {
+.chat-sidebar {
   width: 360px;
   min-width: 360px;
-  background: #ffffff;
+  background:   #e7e6f6;
   border-right: 1px solid #e2e8f0;
   padding: 25px;
   overflow-y: auto;
