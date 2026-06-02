@@ -28,23 +28,21 @@ function FriendRequests({
           user={req.sender}
         >
           <div>
-            <button
-              className="accept-btn"
-              onClick={() =>
-                handleAccept(req.id)
-              }
-            >
-              Accept
-            </button>
+           <div className="request-actions">
+  <button
+    className="reject-btn"
+    onClick={() => onReject(request._id)}
+  >
+    ✕
+  </button>
 
-            <button
-              className="reject-btn"
-              onClick={() =>
-                handleReject(req.id)
-              }
-            >
-              Reject
-            </button>
+  <button
+    className="accept-btn"
+    onClick={() => onAccept(request._id)}
+  >
+    ✓
+  </button>
+</div>
           </div>
         </FriendCard>
       ))}

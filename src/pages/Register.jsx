@@ -1,134 +1,111 @@
-import { Link, useNavigate }
-from 'react-router-dom'
-
-import { motion }
-from 'framer-motion'
-
-import { useState }
-from 'react'
-
-import { registerUser }
-from '../services/api'
+import { useState } from "react";
+import "../styles/Auth.css";
 
 function Register() {
 
-  const navigate = useNavigate()
-
   const [formData, setFormData] =
-        useState({
-
-          username: '',
-          email: '',
-          password: ''
-        })
+    useState({
+      username: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      profilePic: null,
+    });
 
   const handleChange = (e) => {
 
+    const { name, value } = e.target;
+
     setFormData({
-
       ...formData,
+      [name]: value,
+    });
+  };
 
-      [e.target.name]:
-        e.target.value
-    })
-  }
+  const handleImage = (e) => {
 
-  const handleRegister = async () => {
+    setFormData({
+      ...formData,
+      profilePic: e.target.files[0],
+    });
+  };
 
-    try {
+  const handleSubmit = (e) => {
 
-      await registerUser(formData)
+    e.preventDefault();
 
-      alert('Registration Successful')
-
-      navigate('/')
-
-    } catch (error) {
-
-      console.log(error)
-
-      alert('Registration Failed')
-    }
-  }
+    console.log(formData);
+  };
 
   return (
+    <div className="auth-container">
 
-    <div className='auth-page'>
-
-      <motion.div
-        initial={{
-          scale: 0.8,
-          opacity: 0
-        }}
-
-        animate={{
-          scale: 1,
-          opacity: 1
-        }}
-
-        className='auth-card'
+      <form
+        className="auth-card"
+        onSubmit={handleSubmit}
       >
 
-        <h1>Create Account</h1>
+        <h2>Join ChatSphere 🚀</h2>
 
-        <p>
-          Start your chatting journey
-        </p>
+        <div className="profile-upload">
+
+          <label htmlFor="profilePic">
+
+            <img
+              src={
+                formData.profilePic
+                  ? URL.createObjectURL(
+                      formData.profilePic
+                    )
+                  : "https://cdn-icons-png.flaticon.com/512/149/149071.png"
+              }
+              alt=""
+            />
+
+          </label>
+
+          <input
+            id="profilePic"
+            type="file"
+            accept="image/*"
+            onChange={handleImage}
+            hidden
+          />
+
+          <p>Upload Profile Photo</p>
+
+        </div>
 
         <input
-          type='text'
-
-          name='username'
-
-          placeholder='Full Name'
-
-          value={formData.username}
-
+          type="text"
+          name="username"
+          placeholder="Username"
           onChange={handleChange}
         />
 
         <input
-          type='email'
-
-          name='email'
-
-          placeholder='Email Address'
-
-          value={formData.email}
-
+          type="email"
+          name="email"
+          placeholder="Email"
           onChange={handleChange}
         />
 
         <input
-          type='password'
-
-          name='password'
-
-          placeholder='Password'
-
-          value={formData.password}
-
+          type="password"
+          name="password"
+          placeholder="Password"
           onChange={handleChange}
         />
 
-        <button onClick={handleRegister}>
-          Register
+        
+        <button type="submit">
+          Create Account
         </button>
 
-        <span>
-
-          Already have an account?
-
-          <Link to='/'>
-            Login
-          </Link>
-
-        </span>
-
-      </motion.div>
+      </form>
 
     </div>
-  )
+  );
 }
 
-export default Register
+export default Register;

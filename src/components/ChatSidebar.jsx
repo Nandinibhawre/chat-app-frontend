@@ -34,7 +34,7 @@ function ChatSidebar({
 
       const data =
         await getAllUsers()
-console.log(data)
+// console.log(data)
       const filteredUsers =
         data.filter(
 

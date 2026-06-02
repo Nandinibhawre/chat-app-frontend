@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-import Sidebar from "../components/FriendSidebar";
+// import Sidebar from "../components/FriendSidebar";
 import SearchUsers from "../components/SearchUsers";
 import FriendRequests from "../components/FriendRequests";
 import FriendsList from "../components/FriendsList";
@@ -99,7 +99,7 @@ function Friends() {
 
   return (
     <div className="friends-layout">
-      <Sidebar />
+      {/* <Sidebar /> */}
 
       <div className="friends-page">
 

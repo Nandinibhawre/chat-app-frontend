@@ -2,7 +2,6 @@ import SockJS from 'sockjs-client'
 
 import { Client }
 from '@stomp/stompjs'
-
 let stompClient = null
 
 export const connectSocket = (

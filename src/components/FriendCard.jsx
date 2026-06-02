@@ -46,11 +46,11 @@ function FriendCard({
         children
       ) : (
         <button
-          className={buttonClass}
-          onClick={onClick}
-        >
-          {buttonText}
-        </button>
+  className={buttonClass || "send-btn"}
+  onClick={onClick}
+>
+  {buttonText}
+</button>
       )}
     </div>
   );
