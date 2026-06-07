@@ -15,7 +15,10 @@ function MessageInput() {
   return (
 
     <div className="message-input">
-
+<input
+  type="file"
+  onChange={handleFileUpload}
+/>
       <input
         value={text}
 

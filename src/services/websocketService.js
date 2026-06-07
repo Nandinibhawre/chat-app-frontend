@@ -1,14 +1,143 @@
-import SockJS from 'sockjs-client'
+// import SockJS from 'sockjs-client'
 
-import { Client }
-from '@stomp/stompjs'
+// import { Client }
+// from '@stomp/stompjs'
+// let stompClient = null
+// export const connectSocket = (
+//   onMessageReceived,
+//   onTypingReceived
+// ) => {
+
+//   const currentUser =
+//     localStorage.getItem(
+//       'userEmail'
+//     )
+
+//   const socket =
+//     new SockJS(
+//       `https://chat-app-backend-production-54a2.up.railway.app/ws?email=${currentUser}`
+//     )
+
+//   stompClient =
+//     new Client({
+
+//       webSocketFactory:
+//         () => socket,
+
+//       reconnectDelay: 5000,
+
+//       debug: () => {},
+
+//       onConnect: () => {
+
+//         console.log(
+//           'Socket Connected'
+//         )
+
+//         // MESSAGE SUBSCRIPTION
+//         stompClient.subscribe(
+
+//           '/user/queue/messages',
+
+//           (message) => {
+
+//             const receivedMessage =
+//               JSON.parse(
+//                 message.body
+//               )
+
+//             onMessageReceived(
+//               receivedMessage
+//             )
+//           }
+//         )
+
+//         // TYPING SUBSCRIPTION
+//         stompClient.subscribe(
+
+//           '/user/queue/typing',
+
+//           (message) => {
+
+//             const typingData =
+//               JSON.parse(
+//                 message.body
+//               )
+
+//             if (
+//               onTypingReceived
+//             ) {
+
+//               onTypingReceived(
+//                 typingData
+//               )
+//             }
+//           }
+//         )
+//       }
+//     })
+
+//   stompClient.activate()
+// }
+// export const sendMessage = (
+//   message
+// ) => {
+
+//   if (
+//     stompClient &&
+//     stompClient.connected
+//   ) {
+
+//     stompClient.publish({
+
+//       destination:
+//         '/app/sendMessage',
+
+//       body:
+//         JSON.stringify(message)
+//     })
+//   }
+// }
+
+// export const disconnectSocket = () => {
+
+//   if (stompClient) {
+
+//     stompClient.deactivate()
+
+//     stompClient = null
+//   }
+// }
+// export const sendTypingStatus =
+//   (typingData) => {
+
+//     if (
+//       stompClient &&
+//       stompClient.connected
+//     ) {
+
+//       stompClient.publish({
+
+//         destination:
+//           '/app/typing',
+
+//         body:
+//           JSON.stringify(
+//             typingData
+//           )
+//       })
+//     }
+//   }
+import SockJS from 'sockjs-client'
+import { Client } from '@stomp/stompjs'
+
 let stompClient = null
 
 export const connectSocket = (
-  onMessageReceived
+  onMessageReceived,
+  onTypingReceived
 ) => {
 
-  // GET LOGGED IN USER
   const currentUser =
     localStorage.getItem(
       'userEmail'
@@ -31,10 +160,11 @@ export const connectSocket = (
 
       onConnect: () => {
 
-        console.log(      
+        console.log(
           'Socket Connected'
         )
 
+        // MESSAGE SUBSCRIPTION
         stompClient.subscribe(
 
           '/user/queue/messages',
@@ -51,38 +181,84 @@ export const connectSocket = (
             )
           }
         )
+
+        // TYPING SUBSCRIPTION
+        stompClient.subscribe(
+
+          '/user/queue/typing',
+
+          (message) => {
+
+            const typingData =
+              JSON.parse(
+                message.body
+              )
+
+            if (
+              onTypingReceived
+            ) {
+
+              onTypingReceived(
+                typingData
+              )
+            }
+          }
+        )
       }
     })
 
   stompClient.activate()
 }
 
-export const sendMessage = (
-  message
-) => {
+export const sendMessage =
+  (message) => {
 
-  if (
-    stompClient &&
-    stompClient.connected
-  ) {
+    if (
+      stompClient &&
+      stompClient.connected
+    ) {
 
-    stompClient.publish({
+      stompClient.publish({
 
-      destination:
-        '/app/sendMessage',
+        destination:
+          '/app/sendMessage',
 
-      body:
-        JSON.stringify(message)
-    })
+        body:
+          JSON.stringify(
+            message
+          )
+      })
+    }
   }
-}
 
-export const disconnectSocket = () => {
+export const sendTypingStatus =
+  (typingData) => {
 
-  if (stompClient) {
+    if (
+      stompClient &&
+      stompClient.connected
+    ) {
 
-    stompClient.deactivate()
+      stompClient.publish({
 
-    stompClient = null
+        destination:
+          '/app/typing',
+
+        body:
+          JSON.stringify(
+            typingData
+          )
+      })
+    }
   }
-}
+
+export const disconnectSocket =
+  () => {
+
+    if (stompClient) {
+
+      stompClient.deactivate()
+
+      stompClient = null
+    }
+  }

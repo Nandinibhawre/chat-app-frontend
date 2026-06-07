@@ -1,187 +1,365 @@
-import {
-  useEffect,
-  useState
-} from 'react'
+  import axios from "axios";
+  import { useEffect, useState } from "react";
 
-import {
-  FaPaperPlane,
-  FaSmile
-} from 'react-icons/fa'
+  import { FaPaperPlane, FaSmile, FaPaperclip } from "react-icons/fa";
 
-import EmojiPicker
-from 'emoji-picker-react'
+  import EmojiPicker from "emoji-picker-react";
 
-import {
-  connectSocket,
-  sendMessage,
-  disconnectSocket
-} from '../services/websocketService'
+  import {
+    connectSocket,
+    sendMessage,
+    disconnectSocket,
+      sendTypingStatus
+  } from "../services/websocketService";
 
-import {
-  getMessages
-} from '../services/api'
+  import { getMessages } from "../services/api";
 
-function ChatWindow({
+  function ChatWindow({ selectedUser }) {
+    const currentUser = localStorage.getItem("userEmail");
+    const [isTyping, setIsTyping] = useState(false);
 
-  selectedUser
+    const [message, setMessage] = useState("");
 
-}) {
+    const [messages, setMessages] = useState([]);
 
-  const currentUser =
-    localStorage.getItem(
-      'userEmail'
-    )
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
-  const [message, setMessage] =
-    useState('')
+    // LOAD OLD MESSAGES
+    useEffect(() => {
+      if (!selectedUser) return;
 
-  const [messages, setMessages] =
-    useState([])
+      fetchMessages();
+    }, [selectedUser]);
 
-  const [showEmojiPicker,
-        setShowEmojiPicker] =
-        useState(false)
+    const handleFileUpload = async (e) => {
+      const file = e.target.files[0];
 
-  // LOAD OLD MESSAGES
-  useEffect(() => {
+      if (!file) return;
 
-    if (!selectedUser) return
+      const formData = new FormData();
 
-    fetchMessages()
-
-  }, [selectedUser])
-
-  const fetchMessages =
-    async () => {
+      formData.append("file", file);
 
       try {
+        const response = await axios.post(
+          "https://chat-app-backend-production-54a2.up.railway.app/api/files/upload",
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          },
+        );
 
-        const data =
-          await getMessages(
+        const fileUrl = response.data;
 
-            currentUser,
-            selectedUser.email
+        const messageData = {
+          sender: currentUser,
+
+          receiver: selectedUser.email,
+
+          content: "",
+
+          fileUrl: fileUrl,
+
+          fileType: file.type,
+        };
+
+        sendMessage(messageData);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    const fetchMessages = async () => {
+      try {
+        const data = await getMessages(currentUser, selectedUser.email);
+
+        const formatted = data.map((msg) => ({
+          id: msg.id,
+
+          text: msg.content,
+
+          fileUrl: msg.fileUrl,
+
+          fileType: msg.fileType,
+
+          sender: msg.sender,
+
+          own: msg.sender === currentUser,
+
+          time: msg.timestamp
+            ? new Date(msg.timestamp).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })
+            : "",
+        }));
+
+        setMessages(formatted);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    // SOCKET CONNECTION
+    useEffect(() => {
+      if (!selectedUser) return;
+connectSocket(
+
+  (newMessage) => {
+
+    const isCurrentChat =
+
+      (
+        newMessage.sender === currentUser &&
+        newMessage.receiver === selectedUser.email
+      )
+
+      ||
+
+      (
+        newMessage.sender === selectedUser.email &&
+        newMessage.receiver === currentUser
+      )
+
+    if (isCurrentChat) {
+
+      setMessages((prev) => {
+
+        const exists =
+          prev.some(
+            (msg) =>
+              msg.id === newMessage.id
           )
 
-        const formatted =
-          data.map((msg) => ({
+        if (exists) {
+          return prev
+        }
 
-            id: msg.id,
+        return [
 
-            text: msg.content,
+          ...prev,
 
-            sender: msg.sender,
+          {
+            id: newMessage.id,
+
+            text: newMessage.content,
+
+            fileUrl: newMessage.fileUrl,
+
+            fileType: newMessage.fileType,
+
+            sender: newMessage.sender,
 
             own:
-              msg.sender ===
+              newMessage.sender ===
               currentUser,
 
             time:
-              msg.timestamp
-                ? new Date(
-                    msg.timestamp
-                  ).toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })
-                : ''
-          }))
-
-        setMessages(formatted)
-
-      } catch (error) {
-
-        console.log(error)
-      }
-    }
-
-  // SOCKET CONNECTION
-  useEffect(() => {
-
-    if (!selectedUser) return
-
-    connectSocket((newMessage) => {
-
-      const isCurrentChat =
-
-        (
-          newMessage.sender ===
-            currentUser
-          &&
-          newMessage.receiver ===
-            selectedUser.email
-        )
-
-        ||
-
-        (
-          newMessage.sender ===
-            selectedUser.email
-          &&
-          newMessage.receiver ===
-            currentUser
-        )
-
-      if (isCurrentChat) {
-
-        setMessages((prev) => {
-
-          const exists =
-            prev.some(
-              (msg) =>
-                msg.id ===
-                newMessage.id
-            )
-
-          if (exists) {
-            return prev
+              new Date(
+                newMessage.timestamp
+              ).toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true,
+                timeZone: 'Asia/Kolkata'
+              })
           }
+        ]
+      })
+    }
+  },
 
-          return [
+  (typingData) => {
 
-            ...prev,
+    if (
 
-            {
+      typingData.sender ===
+      selectedUser.email
 
-              id:
-                newMessage.id,
+    ) {
 
-              text:
-                newMessage.content,
+      setIsTyping(
+        typingData.typing
+      )
+    }
+  }
+)
 
-              sender:
-                newMessage.sender,
+      return () => {
+        disconnectSocket();
+      };
+    }, [selectedUser]);
 
-              own:
-                newMessage.sender ===
-                currentUser,
+    // SEND MESSAGE
+    const handleSend = () => {
+      if (!message.trim()) return;
 
-              time:
-                new Date(
-                  newMessage.timestamp
-                ).toLocaleTimeString([], {
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })
-            }
-          ]
-        })
-      }
-    })
+      const messageData = {
+        sender: currentUser,
 
-    return () => {
+        receiver: selectedUser.email,
 
-      disconnectSocket()
+        content: message,
+      };
+
+      sendMessage(messageData);
+
+      setMessage("");
+
+      setShowEmojiPicker(false);
+    };
+
+    // ADD EMOJI
+    const onEmojiClick = (emojiData) => {
+      setMessage((prev) => prev + emojiData.emoji);
+    };
+
+    // NO USER SELECTED
+    if (!selectedUser) {
+      return (
+        <div className="chat-window">
+          <div className="chat-header">
+            <h2>Select User To Chat</h2>
+          </div>
+        </div>
+      );
     }
 
-  }, [selectedUser])
+    return (
+      <div className="chat-window">
+        {/* HEADER */}
 
-  // SEND MESSAGE
-  const handleSend = () => {
+        <div className="chat-header">
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+            }}
+          >
+            <img
+              src="https://i.pravatar.cc/50"
+              alt=""
+              style={{
+                width: "45px",
+                height: "45px",
+                borderRadius: "50%",
+              }}
+            />
 
-    if (!message.trim()) return
+            <div>
+              <h3>{selectedUser.username}</h3>
 
-    const messageData = {
+              {isTyping ? (
+                <span
+                  style={{
+                    color: "#25D366",
+                    fontSize: "14px",
+                  }}
+                >
+                  typing...
+                </span>
+              ) : (
+                <span
+                  style={{
+                    color: "green",
+                  }}
+                >
+                  Online
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* MESSAGES */}
+
+        <div className="messages-container">
+          {messages.map((msg) => (
+            <div
+              key={msg.id}
+              className={msg.own ? "my-message" : "other-message"}
+            >
+              {msg.fileUrl ? (
+                msg.fileType?.startsWith("image") ? (
+                  <img
+                    src={msg.fileUrl}
+                    alt=""
+                    style={{
+                      maxWidth: "250px",
+                      borderRadius: "10px",
+                      marginBottom: "5px",
+                    }}
+                  />
+                ) : (
+                  <a href={msg.fileUrl} target="_blank" rel="noreferrer">
+                    📎 Open File
+                  </a>
+                )
+              ) : (
+                <p>{msg.text}</p>
+              )}
+
+              <span>{msg.time}</span>
+            </div>
+          ))}
+        </div>
+
+        {/* INPUT */}
+
+        <div className="message-input">
+          {/* EMOJI */}
+
+          <div
+            style={{
+              position: "relative",
+            }}
+          >
+            <FaSmile
+              className="emoji-icon"
+              onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+            />
+
+            {showEmojiPicker && (
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: "60px",
+                  padding: "10px",
+                  left: "0",
+                  zIndex: 1000,
+                }}
+              >
+                <EmojiPicker onEmojiClick={onEmojiClick} />
+              </div>
+            )}
+          </div>
+
+          {/* INPUT */}
+          <label
+            style={{
+              cursor: "pointer",
+              fontSize: "20px",
+              color: "#666",
+            }}
+          >
+            <FaPaperclip />
+
+            <input type="file" hidden onChange={handleFileUpload} />
+          </label>
+
+          <input
+            type="text"
+            placeholder="Type a message..."
+            value={message}
+          onChange={(e) => {
+
+    setMessage(
+      e.target.value
+    )
+
+    sendTypingStatus({
 
       sender:
         currentUser,
@@ -189,220 +367,44 @@ function ChatWindow({
       receiver:
         selectedUser.email,
 
-      content:
-        message
-    }
+      typing: true
+    })
 
-    sendMessage(messageData)
-
-    setMessage('')
-
-    setShowEmojiPicker(false)
-  }
-
-  // ADD EMOJI
-  const onEmojiClick = (
-    emojiData
-  ) => {
-
-    setMessage(
-
-      (prev) =>
-        prev + emojiData.emoji
+    clearTimeout(
+      window.typingTimeout
     )
-  }
 
-  // NO USER SELECTED
-  if (!selectedUser) {
+    window.typingTimeout =
+      setTimeout(() => {
 
-    return (
+        sendTypingStatus({
 
-      <div className='chat-window'>
+          sender:
+            currentUser,
 
-        <div className='chat-header'>
+          receiver:
+            selectedUser.email,
 
-          <h2>
-            Select User To Chat
-          </h2>
+          typing: false
+        })
 
-        </div>
-
-      </div>
-    )
-  }
-
-  return (
-
-    <div className='chat-window'>
-
-      {/* HEADER */}
-
-      <div className='chat-header'>
-
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px'
-          }}
-        >
-
-          <img
-            src='https://i.pravatar.cc/50'
-            alt=''
-
-            style={{
-              width: '45px',
-              height: '45px',
-              borderRadius: '50%'
+      }, 1000)
+  }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                handleSend();
+              }
             }}
           />
 
-          <div>
+          {/* SEND */}
 
-            <h3>
-              {selectedUser.username}
-            </h3>
-
-            <span
-              style={{
-                color: 'green'
-              }}
-            >
-              Online
-            </span>
-
-          </div>
-
+          <button onClick={handleSend}>
+            <FaPaperPlane />
+          </button>
         </div>
-
       </div>
+    );
+  }
 
-      {/* MESSAGES */}
-
-      <div className='messages-container'>
-
-        {
-
-          messages.map((msg) => (
-
-            <div
-
-              key={msg.id}
-
-              className={
-                msg.own
-                  ? 'my-message'
-                  : 'other-message'
-              }
-            >
-
-              <p>
-                {msg.text}
-              </p>
-
-              <span>
-                {msg.time}
-              </span>
-
-            </div>
-          ))
-        }
-
-      </div>
-
-      {/* INPUT */}
-
-      <div className='message-input'>
-
-        {/* EMOJI */}
-
-        <div
-          style={{
-            position: 'relative'
-          }}
-        >
-
-          <FaSmile
-
-            className='emoji-icon'
-
-            onClick={() =>
-
-              setShowEmojiPicker(
-                !showEmojiPicker
-              )
-            }
-          />
-
-          {
-
-            showEmojiPicker && (
-
-              <div
-                style={{
-                  position: 'absolute',
-                  bottom: '60px',
-                  padding: '10px',
-                  left: '0',
-                  zIndex: 1000
-                }}
-              >
-
-                <EmojiPicker
-                  onEmojiClick={
-                    onEmojiClick
-                  }
-                />
-
-              </div>
-            )
-          }
-
-        </div>
-
-        {/* INPUT */}
-
-        <input
-
-          type='text'
-
-          placeholder='Type a message...'
-
-          value={message}
-
-          onChange={(e) =>
-
-            setMessage(
-              e.target.value
-            )
-          }
-
-          onKeyDown={(e) => {
-
-            if (
-              e.key === 'Enter'
-            ) {
-
-              handleSend()
-            }
-          }}
-        />
-
-        {/* SEND */}
-
-        <button
-          onClick={handleSend}
-        >
-
-          <FaPaperPlane />
-
-        </button>
-
-      </div>
-
-    </div>
-  )
-}
-
-export default ChatWindow
+  export default ChatWindow;
