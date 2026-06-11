@@ -154,8 +154,12 @@ export const connectSocket = (
       webSocketFactory:
         () => socket,
 
-      reconnectDelay: 5000,
+      reconnectDelay: 0,
+  connectHeaders: {
 
+    userEmail:
+      currentUser
+  },
       debug: () => {},
 
       onConnect: () => {
@@ -209,7 +213,17 @@ export const connectSocket = (
 
   stompClient.activate()
 }
+// export const getUserStatus =
+//   async (email) => {
 
+//     const response =
+//       await api.get(
+//         `/api/status/${email}`
+//       )
+
+//     return response.data
+//   }
+  
 export const sendMessage =
   (message) => {
 
@@ -230,7 +244,17 @@ export const sendMessage =
       })
     }
   }
+export const getUserStatus =
+async (email) => {
 
+    const response =
+    await axios.get(
+
+      `https://chat-app-backend-production-54a2.up.railway.app/api/status/${email}`
+    );
+
+    return response.data;
+}
 export const sendTypingStatus =
   (typingData) => {
 

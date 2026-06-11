@@ -145,4 +145,14 @@ export const getAllUsers =
 
     return response.data
 }
+export const getUserStatus =
+  async (email) => {
+
+    const response =
+      await api.get(
+        `/api/status/${email}`
+      )
+
+    return response.data
+  }
 export default api

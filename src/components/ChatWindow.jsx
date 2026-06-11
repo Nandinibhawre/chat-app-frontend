@@ -9,10 +9,11 @@
     connectSocket,
     sendMessage,
     disconnectSocket,
-      sendTypingStatus
+      sendTypingStatus,
+       
   } from "../services/websocketService";
 
-  import { getMessages } from "../services/api";
+  import { getMessages , getUserStatus } from "../services/api";
 
   function ChatWindow({ selectedUser }) {
     const currentUser = localStorage.getItem("userEmail");
@@ -21,9 +22,14 @@
     const [message, setMessage] = useState("");
 
     const [messages, setMessages] = useState([]);
-
+const [userStatus, setUserStatus] =
+useState(null);
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+const [isOnline,
+      setIsOnline] =
+      useState(false);
 
+      
     // LOAD OLD MESSAGES
     useEffect(() => {
       if (!selectedUser) return;
@@ -101,6 +107,42 @@
       }
     };
 
+useEffect(() => {
+
+  if (!selectedUser) return;
+
+  const fetchStatus = async () => {
+
+    try {
+
+      const data =
+      await getUserStatus(
+        selectedUser.email
+      );
+
+      setUserStatus(data);
+
+    } catch (err) {
+
+      console.log(err);
+    }
+  };
+
+  fetchStatus();
+
+  const interval =
+  setInterval(
+
+    fetchStatus,
+
+    5000
+  );
+
+  return () =>
+    clearInterval(interval);
+
+}, [selectedUser]);
+
     // SOCKET CONNECTION
     useEffect(() => {
       if (!selectedUser) return;
@@ -166,6 +208,7 @@ connectSocket(
               })
           }
         ]
+        
       })
     }
   },
@@ -251,24 +294,68 @@ connectSocket(
             <div>
               <h3>{selectedUser.username}</h3>
 
-              {isTyping ? (
-                <span
-                  style={{
-                    color: "#25D366",
-                    fontSize: "14px",
-                  }}
-                >
-                  typing...
-                </span>
-              ) : (
-                <span
-                  style={{
-                    color: "green",
-                  }}
-                >
-                  Online
-                </span>
-              )}
+{
+isTyping ?
+
+(
+  <span
+    style={{
+      color:"#25D366"
+    }}
+  >
+      typing...
+  </span>
+)
+
+:
+
+userStatus?.online ?
+
+(
+  <span
+    style={{
+      color:"green"
+    }}
+  >
+      Online
+  </span>
+)
+
+:
+
+(
+  <span
+    style={{
+      color:"gray"
+    }}
+  >
+      Last seen {
+
+      userStatus?.lastSeen ?
+
+      new Date(
+        userStatus.lastSeen
+      ).toLocaleString(
+        "en-IN",
+        {
+
+       day: "2-digit",
+        month: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+        timeZone: "Asia/Kolkata"
+        }
+      )
+
+      :
+
+      "recently"
+
+      }
+  </span>
+)
+}
             </div>
           </div>
         </div>
