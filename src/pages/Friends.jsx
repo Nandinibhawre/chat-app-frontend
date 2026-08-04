@@ -11,7 +11,7 @@ import {
   sendRequest,
   acceptRequest,
   rejectRequest,
-  getAllUsers,fetchRequests
+  getAllUsers
 } from "../services/friendService";
 
 import "../styles/Friends.css";
@@ -30,8 +30,7 @@ function Friends() {
 
   const loadData = async () => 
     {
-    try
-     {
+    try {
       if (!currentUser.id) {
         console.log("User ID not found");
         return;
@@ -41,11 +40,6 @@ function Friends() {
       const requestsRes = await getPendingRequests(currentUser.id);
       const usersRes = await getAllUsers();
 
-      const fetchRequests = async () => 
-        {
-      const data = await getPendingRequests();
-  setRequests(data);
-      };
 
       setFriends(friendsRes.data || []);
       setRequests(requestsRes.data || []);
@@ -63,7 +57,10 @@ function Friends() {
       console.error(error);
     }
   };
-
+const fetchRequests = async () => {
+  const data = await getPendingRequests();
+  setRequests(data);
+};
   const handleSendRequest = async (receiverId) => {
     try {
       await sendRequest(currentUser.id, receiverId);
