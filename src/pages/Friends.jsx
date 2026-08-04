@@ -11,7 +11,7 @@ import {
   sendRequest,
   acceptRequest,
   rejectRequest,
-  getAllUsers,
+  getAllUsers
 } from "../services/friendService";
 
 import "../styles/Friends.css";
@@ -38,6 +38,10 @@ function Friends() {
       const friendsRes = await getFriends(currentUser.id);
       const requestsRes = await getPendingRequests(currentUser.id);
       const usersRes = await getAllUsers();
+const fetchRequests = async () => {
+  const data = await getPendingRequests();
+  setRequests(data);
+};
 
       setFriends(friendsRes.data || []);
       setRequests(requestsRes.data || []);
@@ -165,8 +169,9 @@ function Friends() {
 
               <FriendRequests
                 requests={requests}
-                onAccept={handleAccept}
-                onReject={handleReject}
+                refresh={fetchRequests}
+                acceptRequest={handleAccept}
+                rejectRequest={handleReject}
               />
             </>
           )}

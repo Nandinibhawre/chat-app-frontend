@@ -128,91 +128,74 @@
 //       })
 //     }
 //   }
-import SockJS from 'sockjs-client'
-import { Client } from '@stomp/stompjs'
+import SockJS from "sockjs-client";
+import { Client } from "@stomp/stompjs";
 
-let stompClient = null
+let stompClient = null;
 
 export const connectSocket = (
   onMessageReceived,
-  onTypingReceived
+  onTypingReceived,
+  onSeenReceived,
 ) => {
+  const currentUser = localStorage.getItem("userEmail");
 
-  const currentUser =
-    localStorage.getItem(
-      'userEmail'
-    )
+  const socket = new SockJS(
+    `https://chat-app-backend-production-54a2.up.railway.app/ws?email=${currentUser}`,
+  );
 
-  const socket =
-    new SockJS(
-      `https://chat-app-backend-production-54a2.up.railway.app/ws?email=${currentUser}`
-    )
+  stompClient = new Client({
+    webSocketFactory: () => socket,
 
-  stompClient =
-    new Client({
+    reconnectDelay: 0,
+    connectHeaders: {
+      userEmail: currentUser,
+    },
+    debug: () => {},
 
-      webSocketFactory:
-        () => socket,
+    onConnect: () => {
+      console.log("Socket Connected");
 
-      reconnectDelay: 0,
-  connectHeaders: {
+      // MESSAGE SUBSCRIPTION
+      stompClient.subscribe(
+        "/user/queue/messages",
 
-    userEmail:
-      currentUser
-  },
-      debug: () => {},
+        (message) => {
+          const receivedMessage = JSON.parse(message.body);
 
-      onConnect: () => {
+          onMessageReceived(receivedMessage);
+        },
+      );
 
-        console.log(
-          'Socket Connected'
-        )
+      // TYPING SUBSCRIPTION
+      stompClient.subscribe(
+        "/user/queue/typing",
 
-        // MESSAGE SUBSCRIPTION
-        stompClient.subscribe(
+        (message) => {
+          const typingData = JSON.parse(message.body);
 
-          '/user/queue/messages',
-
-          (message) => {
-
-            const receivedMessage =
-              JSON.parse(
-                message.body
-              )
-
-            onMessageReceived(
-              receivedMessage
-            )
+          if (onTypingReceived) {
+            onTypingReceived(typingData);
           }
-        )
+        },
+      );
 
-        // TYPING SUBSCRIPTION
-        stompClient.subscribe(
+      stompClient.subscribe(
+        "/user/queue/seen",
 
-          '/user/queue/typing',
+        (message) => {
+          const seenMessage = JSON.parse(message.body);
 
-          (message) => {
-
-            const typingData =
-              JSON.parse(
-                message.body
-              )
-
-            if (
-              onTypingReceived
-            ) {
-
-              onTypingReceived(
-                typingData
-              )
-            }
+          if (onSeenReceived) {
+            onSeenReceived(seenMessage);
           }
-        )
-      }
-    })
+        },
+      );
+    },
+  });
 
-  stompClient.activate()
-}
+  stompClient.activate();
+};
 // export const getUserStatus =
 //   async (email) => {
 
@@ -223,66 +206,47 @@ export const connectSocket = (
 
 //     return response.data
 //   }
-  
-export const sendMessage =
-  (message) => {
 
-    if (
-      stompClient &&
-      stompClient.connected
-    ) {
+export const sendMessage = (message) => {
+  if (stompClient && stompClient.connected) {
+    stompClient.publish({
+      destination: "/app/sendMessage",
 
-      stompClient.publish({
-
-        destination:
-          '/app/sendMessage',
-
-        body:
-          JSON.stringify(
-            message
-          )
-      })
-    }
+      body: JSON.stringify(message),
+    });
   }
-export const getUserStatus =
-async (email) => {
+};
+export const getUserStatus = async (email) => {
+  const response = await axios.get(
+    `https://chat-app-backend-production-54a2.up.railway.app/api/status/${email}`,
+  );
 
-    const response =
-    await axios.get(
+  return response.data;
+};
+export const sendTypingStatus = (typingData) => {
+  if (stompClient && stompClient.connected) {
+    stompClient.publish({
+      destination: "/app/typing",
 
-      `https://chat-app-backend-production-54a2.up.railway.app/api/status/${email}`
-    );
-
-    return response.data;
-}
-export const sendTypingStatus =
-  (typingData) => {
-
-    if (
-      stompClient &&
-      stompClient.connected
-    ) {
-
-      stompClient.publish({
-
-        destination:
-          '/app/typing',
-
-        body:
-          JSON.stringify(
-            typingData
-          )
-      })
-    }
+      body: JSON.stringify(typingData),
+    });
   }
+};
 
-export const disconnectSocket =
-  () => {
+export const disconnectSocket = () => {
+  if (stompClient) {
+    stompClient.deactivate();
 
-    if (stompClient) {
-
-      stompClient.deactivate()
-
-      stompClient = null
-    }
+    stompClient = null;
   }
+};
+
+export const sendSeenStatus = (seenData) => {
+  if (stompClient && stompClient.connected) {
+    stompClient.publish({
+      destination: "/app/seen",
+
+      body: JSON.stringify(seenData),
+    });
+  }
+};

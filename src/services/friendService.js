@@ -4,7 +4,7 @@ import axios from "axios";
 //   "https://chat-app-backend-production-54a2.up.railway.app";
 
   const API =
-  "https://chat-app-backend-production-54a2.up.railway.app";
+  "https://chat-app-backend-production-d1df.up.railway.app";
 
   export const getPendingRequests = (userId) =>
   axios.get(`${API}/api/friends/pending/${userId}`);
