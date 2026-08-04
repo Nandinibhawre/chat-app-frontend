@@ -11,7 +11,7 @@ import {
   sendRequest,
   acceptRequest,
   rejectRequest,
-  getAllUsers
+  getAllUsers,fetchRequests
 } from "../services/friendService";
 
 import "../styles/Friends.css";
@@ -28,8 +28,10 @@ function Friends() {
   const [requests, setRequests] = useState([]);
   const [activeTab, setActiveTab] = useState("users");
 
-  const loadData = async () => {
-    try {
+  const loadData = async () => 
+    {
+    try
+     {
       if (!currentUser.id) {
         console.log("User ID not found");
         return;
@@ -38,10 +40,12 @@ function Friends() {
       const friendsRes = await getFriends(currentUser.id);
       const requestsRes = await getPendingRequests(currentUser.id);
       const usersRes = await getAllUsers();
-const fetchRequests = async () => {
-  const data = await getPendingRequests();
+
+      const fetchRequests = async () => 
+        {
+      const data = await getPendingRequests();
   setRequests(data);
-};
+      };
 
       setFriends(friendsRes.data || []);
       setRequests(requestsRes.data || []);
