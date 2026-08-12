@@ -17,7 +17,8 @@ function FriendRequests({
     await rejectRequest(id);
     refresh();
   };
-
+console.log("Requests:", requests);
+console.log("Is Array:", Array.isArray(requests));
   return (
     <div className="section">
       {/* <h2>Pending Requests</h2> */}

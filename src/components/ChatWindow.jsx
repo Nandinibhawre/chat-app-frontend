@@ -43,7 +43,7 @@ function ChatWindow({ selectedUser }) {
 
     try {
       const response = await axios.post(
-        "https://chat-app-backend-production-54a2.up.railway.app/api/files/upload",
+        "https://chat-app-backend-production-d1df.up.railway.app/api/files/upload",
         formData,
         {
           headers: {

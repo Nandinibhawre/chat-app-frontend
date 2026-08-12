@@ -141,7 +141,7 @@ export const connectSocket = (
   const currentUser = localStorage.getItem("userEmail");
 
   const socket = new SockJS(
-    `https://chat-app-backend-production-54a2.up.railway.app/ws?email=${currentUser}`,
+    `https://chat-app-backend-production-d1df.up.railway.app/ws?email=${currentUser}`,
   );
 
   stompClient = new Client({
@@ -218,7 +218,7 @@ export const sendMessage = (message) => {
 };
 export const getUserStatus = async (email) => {
   const response = await axios.get(
-    `https://chat-app-backend-production-54a2.up.railway.app/api/status/${email}`,
+    `https://chat-app-backend-production-d1df.up.railway.app/api/status/${email}`,
   );
 
   return response.data;
