@@ -1,83 +1,103 @@
-import { Link, useNavigate }
-from 'react-router-dom'
-
-import { motion }
-from 'framer-motion'
-
-import { useState }
-from 'react'
+import { Link, useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { useState } from "react";
 
 import {
   loginUser,
   forgotPassword
-}
-from '../services/api'
+} from "../services/api";
+
+import "../styles/Auth.css";
 
 function Login() {
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
-  const [formData, setFormData] =
-    useState({
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
 
-      email: '',
-      password: ''
-    })
+  const [showPassword, setShowPassword] =
+    useState(false);
+
+  const [loading, setLoading] =
+    useState(false);
+
+  const [error, setError] =
+    useState("");
 
   const handleChange = (e) => {
 
     setFormData({
-
       ...formData,
+      [e.target.name]: e.target.value,
+    });
 
-      [e.target.name]:
-        e.target.value
-    })
-  }
+    setError("");
+  };
 
   // ================= LOGIN =================
 
-  const handleLogin = async () => {
+  const handleLogin = async (e) => {
+
+    e.preventDefault();
+
+    if (!formData.email) {
+      setError("Please enter your email.");
+      return;
+    }
+
+    if (!formData.password) {
+      setError("Please enter your password.");
+      return;
+    }
 
     try {
 
+      setLoading(true);
+
       const response =
-        await loginUser(formData)
+        await loginUser(formData);
 
-      console.log(response)
-
-      // STORE TOKEN
+      console.log(response);
 
       localStorage.setItem(
-        'token',
+        "token",
         response.token
-      )
+      );
 
       localStorage.setItem(
-        'userEmail',
+        "userEmail",
         response.email
-      )
+      );
 
       localStorage.setItem(
-        'username',
+        "username",
         response.username
-      )
-      
-      localStorage.setItem(
-        'userId',
-        response.userId
-      )
-      alert('Login Successful')
+      );
 
-      navigate('/home')
+      localStorage.setItem(
+        "userId",
+        response.userId
+      );
+
+      navigate("/home");
 
     } catch (error) {
 
-      console.log(error)
+      console.log(error);
 
-      alert('Invalid Credentials')
+      setError(
+        "Invalid email or password."
+      );
+
+    } finally {
+
+      setLoading(false);
+
     }
-  }
+  };
 
   // ================= FORGOT PASSWORD =================
 
@@ -86,11 +106,11 @@ function Login() {
 
       if (!formData.email) {
 
-        alert(
-          'Please enter your email first'
-        )
+        setError(
+          "Please enter your email first."
+        );
 
-        return
+        return;
       }
 
       try {
@@ -98,123 +118,179 @@ function Login() {
         const response =
           await forgotPassword(
             formData.email
-          )
+          );
 
-        alert(response)
+        alert(response);
 
       } catch (error) {
 
-        console.log(error)
+        console.log(error);
 
-        alert(
-          'Failed to send reset link'
-        )
+        setError(
+          "Failed to send reset link."
+        );
       }
-    }
+    };
 
   return (
 
-    <div className='auth-page'>
+    <div className="auth-page">
+
+      <div className="background-circle circle-one"></div>
+      <div className="background-circle circle-two"></div>
 
       <motion.div
-
+        className="auth-card"
         initial={{
-          scale: 0.8,
-          opacity: 0
+          opacity: 0,
+          y: 40,
+          scale: 0.95
         }}
-
         animate={{
-          scale: 1,
-          opacity: 1
+          opacity: 1,
+          y: 0,
+          scale: 1
         }}
-
-        className='auth-card'
+        transition={{
+          duration: 0.5
+        }}
       >
 
-        <h1>
-          Welcome Back
-        </h1>
+        {/* Logo */}
 
-        <p>
-          Login to continue chatting
-        </p>
+        <div className="brand">
 
-        <input
-          type='email'
+          <div className="brand-icon">
+            💬
+          </div>
 
-          name='email'
-
-          placeholder='Email Address'
-
-          value={formData.email}
-
-          onChange={handleChange}
-        />
-
-        <input
-          type='password'
-
-          name='password'
-
-          placeholder='Password'
-
-          value={formData.password}
-
-          onChange={handleChange}
-        />
-
-        {/* FORGOT PASSWORD */}
-
-        <div
-          style={{
-            width: '100%',
-            textAlign: 'right',
-            marginBottom: '15px'
-          }}
-        >
-
-          <span
-
-            onClick={
-              handleForgotPassword
-            }
-
-            style={{
-              color: '#6C63FF',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: '600'
-            }}
-          >
-
-            Forgot Password?
-
-          </span>
+          <h1>
+            Chat<span>Sphere</span>
+          </h1>
 
         </div>
 
-        <button
-          onClick={handleLogin}
-        >
+        <h2>
+          Welcome Back 👋
+        </h2>
 
-          Login
+        <p className="auth-subtitle">
+          Login to continue chatting
+        </p>
 
-        </button>
+        {/* Error */}
 
-        <span>
+        {error && (
 
-          Don’t have an account?
+          <div className="error-message">
+            ⚠️ {error}
+          </div>
 
-          <Link to='/register'>
-            Register
+        )}
+
+        <form onSubmit={handleLogin}>
+
+          {/* Email */}
+
+          <div className="input-group">
+
+            <span>✉️</span>
+
+            <input
+              type="email"
+              name="email"
+              placeholder="Email Address"
+              value={formData.email}
+              onChange={handleChange}
+            />
+
+          </div>
+
+          {/* Password */}
+
+          <div className="input-group">
+
+            <span>🔒</span>
+
+            <input
+              type={
+                showPassword
+                  ? "text"
+                  : "password"
+              }
+              name="password"
+              placeholder="Password"
+              value={formData.password}
+              onChange={handleChange}
+            />
+
+            <button
+              type="button"
+              className="password-toggle"
+              onClick={() =>
+                setShowPassword(
+                  !showPassword
+                )
+              }
+            >
+              {showPassword
+                ? "🙈"
+                : "👁️"}
+            </button>
+
+          </div>
+
+          {/* Forgot Password */}
+
+          <div className="forgot-container">
+
+            <button
+              type="button"
+              onClick={
+                handleForgotPassword
+              }
+            >
+              Forgot Password?
+            </button>
+
+          </div>
+
+          {/* Login */}
+
+          <motion.button
+            whileHover={{
+              scale: 1.02
+            }}
+            whileTap={{
+              scale: 0.98
+            }}
+            type="submit"
+            className="auth-button"
+            disabled={loading}
+          >
+
+            {loading
+              ? "Logging in..."
+              : "Login →"}
+
+          </motion.button>
+
+        </form>
+
+        <div className="auth-footer">
+
+          Don't have an account?
+
+          <Link to="/register">
+            Create Account
           </Link>
 
-        </span>
+        </div>
 
       </motion.div>
 
     </div>
-  )
+  );
 }
 
-export default Login
+export default Login;

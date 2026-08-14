@@ -16,8 +16,11 @@ function Navbar() {
       <div className="navbar-left">
 
        
-
+ <div className="sidebar-logo">
+              💬
+            </div>
         <h1 className="logo-text">
+          
           ChatSphere
         </h1>
 

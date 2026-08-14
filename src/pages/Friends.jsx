@@ -11,12 +11,13 @@ import {
   sendRequest,
   acceptRequest,
   rejectRequest,
-  getAllUsers
+  getAllUsers,
 } from "../services/friendService";
 
 import "../styles/Friends.css";
 
 function Friends() {
+
   const currentUser = {
     id: localStorage.getItem("userId"),
     username: localStorage.getItem("username"),
@@ -28,92 +29,332 @@ function Friends() {
   const [requests, setRequests] = useState([]);
   const [activeTab, setActiveTab] = useState("users");
 
-  const loadData = async () => 
-    {
+  // ----------------------------------------
+  // HELPER
+  // ----------------------------------------
+
+  const getResponseData = (response) => {
+
+    // If service returns array directly
+    if (Array.isArray(response)) {
+      return response;
+    }
+
+    // If service returns Axios response
+    if (Array.isArray(response?.data)) {
+      return response.data;
+    }
+
+    return [];
+  };
+
+  // ----------------------------------------
+  // LOAD ALL DATA
+  // ----------------------------------------
+
+  const loadData = async () => {
+
     try {
+
       if (!currentUser.id) {
+
         console.log("User ID not found");
+
         return;
       }
 
-      const friendsRes = await getFriends(currentUser.id);
-      const requestsRes = await getPendingRequests(currentUser.id);
-      const usersRes = await getAllUsers();
-
-
-      setFriends(friendsRes.data || []);
-      setRequests(requestsRes.data || []);
-
-      const allUsers = usersRes.data || [];
-
-      const filteredUsers = allUsers.filter(
-        (user) =>
-          user._id !== currentUser.id &&
-          user.id !== currentUser.id
+      console.log(
+        "CURRENT USER ID:",
+        currentUser.id
       );
 
-      setUsers(filteredUsers);
+      // ------------------------------------
+      // GET FRIENDS
+      // ------------------------------------
+
+      const friendsRes =
+        await getFriends(
+          currentUser.id
+        );
+
+      console.log(
+        "GET FRIENDS RESPONSE:",
+        friendsRes
+      );
+
+      const friendsData =
+        getResponseData(
+          friendsRes
+        );
+
+      console.log(
+        "FRIENDS DATA:",
+        friendsData
+      );
+
+      // ------------------------------------
+      // GET PENDING REQUESTS
+      // ------------------------------------
+
+      const requestsRes =
+        await getPendingRequests(
+          currentUser.id
+        );
+
+      console.log(
+        "GET REQUESTS RESPONSE:",
+        requestsRes
+      );
+
+      const requestsData =
+        getResponseData(
+          requestsRes
+        );
+
+      console.log(
+        "REQUESTS DATA:",
+        requestsData
+      );
+
+      // ------------------------------------
+      // GET ALL USERS
+      // ------------------------------------
+
+      const usersRes =
+        await getAllUsers();
+
+      console.log(
+        "GET ALL USERS RESPONSE:",
+        usersRes
+      );
+
+      const allUsers =
+        getResponseData(
+          usersRes
+        );
+
+      console.log(
+        "ALL USERS:",
+        allUsers
+      );
+
+      // ------------------------------------
+      // SET FRIENDS
+      // ------------------------------------
+
+      setFriends(
+        friendsData
+      );
+
+      // ------------------------------------
+      // SET REQUESTS
+      // ------------------------------------
+
+      setRequests(
+        requestsData
+      );
+
+      // ------------------------------------
+      // FILTER USERS
+      // ------------------------------------
+
+      const filteredUsers =
+        allUsers.filter(
+          (user) => {
+
+            const userId =
+              user.id ||
+              user._id;
+
+            return (
+              userId !==
+                currentUser.id &&
+              user.email !==
+                currentUser.email
+            );
+          }
+        );
+
+      setUsers(
+        filteredUsers
+      );
+
     } catch (error) {
-      console.error(error);
+
+      console.error(
+        "LOAD DATA ERROR:",
+        error
+      );
+
     }
   };
-const fetchRequests = async () => {
-  const data = await getPendingRequests();
-  setRequests(data);
-};
-  const handleSendRequest = async (receiverId) => {
+
+  // ----------------------------------------
+  // FETCH REQUESTS AGAIN
+  // ----------------------------------------
+
+  const fetchRequests = async () => {
+
     try {
-      await sendRequest(currentUser.id, receiverId);
 
-      alert("Friend Request Sent");
+      if (!currentUser.id) {
+        return;
+      }
 
-      loadData();
+      const response =
+        await getPendingRequests(
+          currentUser.id
+        );
+
+      const data =
+        getResponseData(
+          response
+        );
+
+      setRequests(
+        data
+      );
+
     } catch (error) {
-      console.error(error);
-      alert("Failed to send request");
+
+      console.error(
+        "FETCH REQUESTS ERROR:",
+        error
+      );
+
     }
   };
 
-  const handleAccept = async (requestId) => {
-    try {
-      await acceptRequest(requestId);
+  // ----------------------------------------
+  // SEND FRIEND REQUEST
+  // ----------------------------------------
 
-      alert("Friend Request Accepted");
+  const handleSendRequest =
+    async (receiverId) => {
 
-      loadData();
-    } catch (error) {
-      console.error(error);
-    }
-  };
+      try {
 
-  const handleReject = async (requestId) => {
-    try {
-      await rejectRequest(requestId);
+        await sendRequest(
+          currentUser.id,
+          receiverId
+        );
 
-      alert("Friend Request Rejected");
+        alert(
+          "Friend Request Sent"
+        );
 
-      loadData();
-    } catch (error) {
-      console.error(error);
-    }
-  };
+        await loadData();
+
+      } catch (error) {
+
+        console.error(
+          "SEND REQUEST ERROR:",
+          error
+        );
+
+        alert(
+          "Failed to send request"
+        );
+      }
+    };
+
+  // ----------------------------------------
+  // ACCEPT FRIEND REQUEST
+  // ----------------------------------------
+
+  const handleAccept =
+    async (requestId) => {
+
+      try {
+
+        await acceptRequest(
+          requestId
+        );
+
+        alert(
+          "Friend Request Accepted"
+        );
+
+        await loadData();
+
+      } catch (error) {
+
+        console.error(
+          "ACCEPT REQUEST ERROR:",
+          error
+        );
+      }
+    };
+
+  // ----------------------------------------
+  // REJECT FRIEND REQUEST
+  // ----------------------------------------
+
+  const handleReject =
+    async (requestId) => {
+
+      try {
+
+        await rejectRequest(
+          requestId
+        );
+
+        alert(
+          "Friend Request Rejected"
+        );
+
+        await loadData();
+
+      } catch (error) {
+
+        console.error(
+          "REJECT REQUEST ERROR:",
+          error
+        );
+      }
+    };
+
+  // ----------------------------------------
+  // LOAD DATA WHEN PAGE OPENS
+  // ----------------------------------------
 
   useEffect(() => {
+
     loadData();
+
   }, []);
 
+  // ----------------------------------------
+  // UI
+  // ----------------------------------------
+
   return (
+
     <div className="friends-layout">
+
       {/* <Sidebar /> */}
 
       <div className="friends-page">
 
+        {/* HEADER */}
+
         <div className="friends-header">
-          <h1>👥 Friends</h1>
-          <p>Manage your friends and requests</p>
+
+          <h1>
+            👥 Friends
+          </h1>
+
+          <p>
+            Manage your friends and requests
+          </p>
+
         </div>
 
+        {/* TABS */}
+
         <div className="friends-tabs">
+
+          {/* ADD FRIENDS */}
 
           <button
             className={
@@ -121,10 +362,14 @@ const fetchRequests = async () => {
                 ? "tab active"
                 : "tab"
             }
-            onClick={() => setActiveTab("users")}
+            onClick={() =>
+              setActiveTab("users")
+            }
           >
             Add Friends
           </button>
+
+          {/* REQUESTS */}
 
           <button
             className={
@@ -132,10 +377,14 @@ const fetchRequests = async () => {
                 ? "tab active"
                 : "tab"
             }
-            onClick={() => setActiveTab("requests")}
+            onClick={() =>
+              setActiveTab("requests")
+            }
           >
             Requests ({requests.length})
           </button>
+
+          {/* MY FRIENDS */}
 
           <button
             className={
@@ -143,54 +392,96 @@ const fetchRequests = async () => {
                 ? "tab active"
                 : "tab"
             }
-            onClick={() => setActiveTab("friends")}
+            onClick={() =>
+              setActiveTab("friends")
+            }
           >
             My Friends ({friends.length})
           </button>
 
         </div>
 
+        {/* TAB CONTENT */}
+
         <div className="tab-content">
 
+          {/* -------------------------------- */}
+          {/* ADD FRIENDS */}
+          {/* -------------------------------- */}
+
           {activeTab === "users" && (
+
             <>
-              <h2>Add Friends</h2>
+
+              <h2>
+                Add Friends
+              </h2>
 
               <SearchUsers
                 users={users}
                 currentUser={currentUser}
-                onSendRequest={handleSendRequest}
+                onSendRequest={
+                  handleSendRequest
+                }
               />
+
             </>
+
           )}
 
+          {/* -------------------------------- */}
+          {/* REQUESTS */}
+          {/* -------------------------------- */}
+
           {activeTab === "requests" && (
+
             <>
-              <h2>Pending Requests</h2>
+
+              <h2>
+                Pending Requests
+              </h2>
 
               <FriendRequests
                 requests={requests}
                 refresh={fetchRequests}
-                acceptRequest={handleAccept}
-                rejectRequest={handleReject}
+                acceptRequest={
+                  handleAccept
+                }
+                rejectRequest={
+                  handleReject
+                }
               />
+
             </>
+
           )}
 
+          {/* -------------------------------- */}
+          {/* FRIENDS */}
+          {/* -------------------------------- */}
+
           {activeTab === "friends" && (
+
             <>
-              <h2>My Friends</h2>
+
+              <h2>
+                My Friends
+              </h2>
 
               <FriendsList
                 friends={friends}
               />
+
             </>
+
           )}
 
         </div>
 
       </div>
+
     </div>
+
   );
 }
 

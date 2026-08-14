@@ -10,6 +10,7 @@ import {
   sendMessage,
   disconnectSocket,
   sendTypingStatus,
+  sendSeenStatus
 } from "../services/websocketService";
 
 import { getMessages, getUserStatus } from "../services/api";
@@ -238,15 +239,54 @@ useEffect(() => {
   };
 
   // NO USER SELECTED
-  if (!selectedUser) {
-    return (
-      <div className="chat-window">
-        <div className="chat-header">
-          <h2>Select User To Chat</h2>
-        </div>
+// NO USER SELECTED
+if (!selectedUser) {
+  return (
+    <div className="chat-window empty-chat-window">
+
+      {/* EMPTY CHAT HEADER */}
+      <div className="chat-header empty-chat-header">
+        <h2>Select User To Chat</h2>
+
+        <button className="empty-chat-menu">
+          ⋯
+        </button>
       </div>
-    );
-  }
+
+      {/* EMPTY CHAT CONTENT */}
+      <div className="empty-chat-content">
+
+        <div className="empty-chat-illustration">
+
+          <div className="chat-circle-back"></div>
+
+          <div className="chat-bubble-main">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+
+          <div className="floating-star star-one">+</div>
+          <div className="floating-star star-two">+</div>
+          <div className="floating-star star-three">+</div>
+
+          <div className="floating-dot dot-one"></div>
+          <div className="floating-dot dot-two"></div>
+          <div className="floating-dot dot-three"></div>
+
+        </div>
+
+        <h2>Your conversations will appear here</h2>
+
+        <p>
+          Select a user from the list to start chatting
+        </p>
+
+      </div>
+
+    </div>
+  );
+}
 
   return (
     <div className="chat-window">
